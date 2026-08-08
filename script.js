@@ -19,8 +19,8 @@ const layouts = {
     1: [[50, 50]],
 
     2: [
-        [32, 32],
-        [68, 68]
+        [30, 30],
+        [70, 70]
     ],
 
     3: [
@@ -30,10 +30,10 @@ const layouts = {
     ],
 
     4: [
-        [32, 32],
-        [68, 32],
-        [32, 68],
-        [68, 68]
+        [30, 30],
+        [70, 30],
+        [30, 70],
+        [70, 70]
     ],
 
     5: [
@@ -45,28 +45,29 @@ const layouts = {
     ],
 
     6: [
-        [30, 27],
-        [70, 27],
+        [30, 25],
+        [70, 25],
         [30, 50],
         [70, 50],
-        [30, 73],
-        [70, 73]
+        [30, 75],
+        [70, 75]
     ]
 };
 
 const sizes = {
     1: 90,
-    2: 80,
-    3: 72,
-    4: 65,
-    5: 58,
-    6: 52
+    2: 82,
+    3: 75,
+    4: 68,
+    5: 60,
+    6: 53
 };
 
 
-/* SAYIYA GÖRE YUVARLAKLARI AYARLA */
+/* YUVARLAKLARI YERLEŞTİR */
 
 function updateDice() {
+
     const positions = layouts[selectedNumber];
     const size = sizes[selectedNumber];
 
@@ -74,11 +75,15 @@ function updateDice() {
 
         if (index < selectedNumber) {
 
-            const [x, y] = positions[index];
+            const x = positions[index][0];
+            const y = positions[index][1];
 
             pip.style.display = "block";
+            pip.style.position = "absolute";
+
             pip.style.left = x + "%";
             pip.style.top = y + "%";
+
             pip.style.width = size + "px";
             pip.style.height = size + "px";
 
@@ -87,6 +92,7 @@ function updateDice() {
             pip.style.display = "none";
 
         }
+
     });
 }
 
@@ -94,7 +100,11 @@ function updateDice() {
 /* RASTGELE RENK */
 
 function randomColor() {
-    return colors[Math.floor(Math.random() * colors.length)];
+
+    const index =
+        Math.floor(Math.random() * colors.length);
+
+    return colors[index];
 }
 
 
@@ -105,7 +115,9 @@ function randomizeColors() {
     pips.forEach((pip, index) => {
 
         if (index < selectedNumber) {
+
             pip.className = "pip " + randomColor();
+
         }
 
     });
@@ -122,25 +134,29 @@ function clickSound() {
 
     if (!AudioContext) return;
 
-    const audio = new AudioContext();
+    const audio =
+        new AudioContext();
 
-    const oscillator = audio.createOscillator();
-    const gain = audio.createGain();
+    const oscillator =
+        audio.createOscillator();
+
+    const gain =
+        audio.createGain();
 
     oscillator.type = "square";
 
     oscillator.frequency.setValueAtTime(
-        1000,
+        900,
         audio.currentTime
     );
 
     oscillator.frequency.exponentialRampToValueAtTime(
-        180,
+        200,
         audio.currentTime + 0.07
     );
 
     gain.gain.setValueAtTime(
-        0.2,
+        0.18,
         audio.currentTime
     );
 
@@ -153,28 +169,32 @@ function clickSound() {
     gain.connect(audio.destination);
 
     oscillator.start();
-    oscillator.stop(audio.currentTime + 0.07);
+
+    oscillator.stop(
+        audio.currentTime + 0.07
+    );
 }
 
 
-/* SAYI SEÇİMİ */
+/* SAYI BUTONLARI */
 
 buttons.forEach(button => {
 
-    button.addEventListener("click", () => {
+    button.addEventListener("click", function () {
 
         if (rolling) return;
 
         selectedNumber =
-            Number(button.dataset.number);
+            Number(this.dataset.number);
 
         buttons.forEach(btn => {
             btn.classList.remove("selected");
         });
 
-        button.classList.add("selected");
+        this.classList.add("selected");
 
         updateDice();
+
     });
 
 });
@@ -182,35 +202,55 @@ buttons.forEach(button => {
 
 /* ROLL */
 
-rollButton.addEventListener("click", async () => {
+rollButton.addEventListener("click", function () {
 
     if (rolling) return;
 
     rolling = true;
-    rollButton.disabled = true;
 
-    /* TIK */
+    rollButton.disabled = true;
 
     clickSound();
 
-    /* DÖNME BAŞLA */
-
     dice.classList.add("rolling");
 
-    /* RENKLER HIZLI HIZLI DEĞİŞSİN */
+    const colorTimer = setInterval(
+        randomizeColors,
+        100
+    );
 
-    const colorTimer = setInterval(() => {
+    setTimeout(function () {
+
+        clearInterval(colorTimer);
+
+        dice.classList.remove("rolling");
+
         randomizeColors();
-    }, 90);
 
-    /* 1.5 SANİYE */
+        rollButton.disabled = false;
 
-    await new Promise(resolve => {
-        setTimeout(resolve, 1500);
-    });
+        rolling = false;
 
-    /* DUR */
+    }, 1500);
 
-    clearInterval(colorTimer);
+});
 
-    dice.classList.remove("
+
+/* BAŞLANGIÇTA 4 */
+
+buttons.forEach(button => {
+
+    if (Number(button.dataset.number) === 4) {
+        button.classList.add("selected");
+    }
+
+});
+
+
+/* BAŞLANGIÇ YUVARLAKLARI */
+
+updateDice();
+
+/* BAŞLANGIÇ RENKLERİ */
+
+randomizeColors();
